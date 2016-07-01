@@ -1,70 +1,109 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 
 ## Loading and preprocessing the data
 #### Set working directory to parent folder of "activity.zip"
-```{r}
+
+```r
 library(data.table)
 unzip("activity.zip")
 activity <- fread("activity.csv")
 ```
 
 ### Format the dates
-```{r}
+
+```r
 class(activity$date)
+```
+
+```
+## [1] "character"
+```
+
+```r
 activity$date <- as.POSIXct(strptime(activity$date, "%Y-%m-%d"))
 class(activity$date)
 ```
 
+```
+## [1] "POSIXct" "POSIXt"
+```
+
 ## What is mean total number of steps taken per day?  
 ### Split activity data by day, sum up steps for each split.  
-```{r}
+
+```r
 by_day <- aggregate(steps ~ date, data = activity, sum)
 ```
 
 ### Create histogram.
-```{r}
+
+```r
 hist(by_day$steps,
      xlab ="Steps per Day",
      main = "Histogram of Steps per Day")
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
+
 ### Find mean and median.
-```{r}
+
+```r
 mean(by_day$steps)
+```
+
+```
+## [1] 10766.19
+```
+
+```r
 median(by_day$steps)
+```
+
+```
+## [1] 10765
 ```
 
 ## What is the average daily activity pattern?
 ### Split activity data by interval, average steps for each split.
-```{r}
+
+```r
 by_int <- aggregate(steps ~ interval, data = activity, mean)
 ```
 
 ### Create plot.
-```{r}
+
+```r
 with(by_int, plot(interval, steps, type = "l",
                   main = "Average Steps Throughout Day"))
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
+
 ### Find interval with max number of steps.
-```{r}
+
+```r
 by_int$interval[by_int$steps == max(by_int$steps)]
+```
+
+```
+## [1] 835
 ```
 
 ## Imputing missing values
 ### Find number of missing values
-```{r}
+
+```r
 sum(is.na(activity))
 ```
 
+```
+## [1] 2304
+```
+
 ### Replace NAs with average steps for that interval.
-```{r}
+
+```r
 library(plyr)
 noNA <- ddply(activity,
               .(interval), 
@@ -73,21 +112,37 @@ noNA <- ddply(activity,
 ```
 
 ### Split activity data by day, sum up steps for each split.  
-```{r}
+
+```r
 by_day <- aggregate(steps ~ date, data = noNA, sum)
 ```
 
 ### Create histogram.
-```{r}
+
+```r
 hist(by_day$steps,
      xlab ="Steps per Day",
      main = "Histogram of Steps per Day")
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-12-1.png)<!-- -->
+
 ### Find mean and median.
-```{r}
+
+```r
 mean(by_day$steps)
+```
+
+```
+## [1] 10766.19
+```
+
+```r
 median(by_day$steps)
+```
+
+```
+## [1] 10766.19
 ```
 
 #### Do these values differ from the estimates from the first part of the assignment?
@@ -98,7 +153,8 @@ median(by_day$steps)
 
 ## Are there differences in activity patterns between weekdays and weekends?
 ### Create weekday variable.
-```{r}
+
+```r
 noNA$weekday <- weekdays(noNA$date)
 
 noNA$weekday[noNA$weekday == "Monday"] <- "weekday"
@@ -111,14 +167,25 @@ noNA$weekday[noNA$weekday == "Sunday"] <- "weekend"
 ```
 
 ### Split activity data by interval and weekday, average steps for each split.
-```{r}
+
+```r
 by_int <- aggregate(steps ~ interval + weekday, data = noNA, mean)
 ```
 
 ### Create plot.
-```{r}
+
+```r
 library(ggplot2)
+```
+
+```
+## Warning: package 'ggplot2' was built under R version 3.2.4
+```
+
+```r
 day_plot <- ggplot(data = by_int, aes(interval, steps)) + geom_line()
 day_plot + facet_grid(. ~ weekday)
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-16-1.png)<!-- -->
 
